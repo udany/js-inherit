@@ -25,25 +25,23 @@ Function.prototype.inherit = function(from){
  * @param args Method arguments
  * @constructor
  */
-Function.prototype.Parent = function(method, args){
-    if (this._parentDepth === null || typeof this._parentDepth === 'undefined'){
-        this._parentDepth = 0;
+Function.prototype.Parent = function(method, args, sourceClass){
+    var parent;
+    if (sourceClass === this.constructor){
+        parent = this._parent[this._parent.length-1];
     }else{
-        this._parentDepth += 1;
+        var idx = this._parent.indexOf(sourceClass);
+        if (idx > 0){
+            parent = this._parent[idx-1];
+        }
     }
-    if (!this._parent.length-this._parentDepth > 0) {console.error('Parent call stack overflow.'); return;}
-
-    var parent = this._parent[this._parent.length-this._parentDepth-1];
+    if (!parent){
+        throw "Couldn't find source class in inheritance stack";
+    }
 
     if (parent && !method) {
         parent.apply(this, args);
     }else if (parent && parent.prototype[method]){
         parent.prototype[method].apply(this, args);
-    }
-
-    if (this._parentDepth){
-        this._parentDepth -= 1;
-    }else{
-        this._parentDepth = null;
     }
 };
