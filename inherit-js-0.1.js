@@ -6,7 +6,7 @@ Function.prototype.inherit = function(from){
     var thisProto = this.prototype;
     var fromProto = from.prototype;
     for (var i in fromProto){
-        if (i != 'constructor' && fromProto.hasOwnProperty(i)){
+        if (i != 'constructor' && fromProto.hasOwnProperty(i) && !thisProto.hasOwnProperty(i)){
             thisProto[i] = fromProto[i];
         }
     }
