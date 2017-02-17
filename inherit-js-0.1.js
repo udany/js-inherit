@@ -1,6 +1,6 @@
 /**
  * Simple prototype inheritance
- * @param from Function
+ * @param {Function} from
  */
 Function.prototype.inherit = function(from){
     var thisProto = this.prototype;
@@ -11,28 +11,36 @@ Function.prototype.inherit = function(from){
         }
     }
 
-    if (!fromProto._parent){
-        thisProto._parent = [from];
+    if (!fromProto.__parent){
+        thisProto.__parent = [from];
     }else{
-        thisProto._parent = fromProto._parent.concat([from]);
+        thisProto.__parent = fromProto.__parent.concat([from]);
     }
 
     thisProto.Parent = Function.prototype.Parent;
+
+    // Copies arbitrarily set properties as well
+    for (i in from){
+        if (from.hasOwnProperty(i)){
+            this[i] = from[i];
+        }
+    }
 };
 /**
  * Invokes a parent class method
- * @param method Method name
- * @param args Method arguments
+ * @param {string|null} method Method name
+ * @param {Array} args Method arguments
+ * @param {Function} sourceClass The class that originated the call
  * @constructor
  */
 Function.prototype.Parent = function(method, args, sourceClass){
     var parent;
     if (sourceClass === this.constructor){
-        parent = this._parent[this._parent.length-1];
+        parent = this.__parent[this.__parent.length-1];
     }else{
-        var idx = this._parent.indexOf(sourceClass);
+        var idx = this.__parent.indexOf(sourceClass);
         if (idx > 0){
-            parent = this._parent[idx-1];
+            parent = this.__parent[idx-1];
         }
     }
     if (!parent){
@@ -42,6 +50,26 @@ Function.prototype.Parent = function(method, args, sourceClass){
     if (parent && !method) {
         parent.apply(this, args);
     }else if (parent && parent.prototype[method]){
-        parent.prototype[method].apply(this, args);
+        if (parent.prototype[method] instanceof Function)
+            return parent.prototype[method].apply(this, args);
     }
+};
+
+/**
+ * @param obj
+ * @returns {boolean}
+ */
+Function.prototype.IsInstance = function(obj){
+    if (obj.constructor === this) return true;
+    if (obj.__parent){
+        return obj.__parent.indexOf(this) !== -1;
+    }
+    return false;
+};
+Function.prototype.IsParent = function(constructor){
+    if (constructor === this) return true;
+    if ((constructor instanceof Function) && constructor.prototype.__parent){
+        return constructor.prototype.__parent.indexOf(this) !== -1;
+    }
+    return false;
 };
